@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -11,16 +12,16 @@ public class GameManager : MonoBehaviour
     public GameObject cardPrefab;
     public Sprite[] faceSprites;
     public Sprite backSprite;
-    public int columns = 4;
-    public int rows = 3;
-    public int pointsPerMatch = 100;
-    public int penaltyForMismatch = 10;
-    public Text scoreText;
-    public float mismatchRevealTime = 0.8f;
+    public int columns;
+    public int rows;
+    public int pointsPerMatch;
+    public int penaltyForMismatch;
+    public TextMeshProUGUI scoreText;
+    public float mismatchRevealTime;
 
     int totalCards;
     int totalPairs;
-    int score = 0;
+    int score;
 
     List<Card> allCards = new List<Card>();
 
