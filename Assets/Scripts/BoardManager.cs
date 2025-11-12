@@ -7,10 +7,13 @@ public class BoardManager : MonoBehaviour
 {
     public RectTransform container; // the UI holding the GridLayoutGroup
     public GridLayoutGroup grid;
+
     public int columns;
     public int rows;
+    
     public Vector2 padding = new Vector2(10, 10);
     public Vector2 spacing = new Vector2(10, 10);
+
     public bool matchAspect = true; // if true, preserve square cards
 
     private void OnValidate()

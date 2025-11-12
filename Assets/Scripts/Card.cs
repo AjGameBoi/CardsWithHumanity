@@ -7,9 +7,10 @@ using UnityEngine.UI;
 public class Card : MonoBehaviour, IPointerClickHandler
 {
     public int cardID;
+    public float cardFlipDuration = 0.4f;
+
     public Image frontImage;
     public Image backImage;
-    public float cardFlipDuration = 0.4f;
 
     public bool isMatched { get; private set; }
     public bool isFaceUp { get; private set; }
@@ -30,10 +31,19 @@ public class Card : MonoBehaviour, IPointerClickHandler
     {
         if (animating || isMatched) return;
 
+        // block interaction if GameManager is comparing or still previewing
+        if (gameManager != null && (gameManager.IsComparing || gameManager.isPreviewing))
+        return;
+
+        // otherwise, request the flip from GameManager
         if (gameManager != null)
+        {
             gameManager.RequestFlip(this);
+        }
         else
-            StartCoroutine(FlipToFaceCoroutine()); // fallback
+        {
+            StartCoroutine(FlipToFaceCoroutine()); // fallback for testing without GameManager
+        }
     }
 
     public void ForceSetMatched()
@@ -44,18 +54,21 @@ public class Card : MonoBehaviour, IPointerClickHandler
     public void SetFace(bool faceUp, bool instant = false)
     {
         isFaceUp = faceUp;
-        float y = faceUp ? 180f : 0f;
 
         if (instant)
         {
-            transform.localEulerAngles = new Vector3(0, y, 0);
+            // Instantly show the correct side
+            float rotY = faceUp ? 180f : 0f;
+            transform.localEulerAngles = new Vector3(0, rotY, 0);
             frontImage.gameObject.SetActive(faceUp);
             backImage.gameObject.SetActive(!faceUp);
+            animating = false;
         }
         else
         {
-            if (faceUp) StartCoroutine(FlipToFaceCoroutine());
-            else StartCoroutine(FlipToBackCoroutine());
+            // Start a normal flip animation
+            StopAllCoroutines();
+            StartCoroutine(FlipCoroutine(faceUp));
         }
     }
 

@@ -12,12 +12,18 @@ public class GameManager : MonoBehaviour
     public GameObject cardPrefab;
     public Sprite[] faceSprites;
     public Sprite backSprite;
+
     public int columns;
     public int rows;
     public int pointsPerMatch;
     public int penaltyForMismatch;
+
     public TextMeshProUGUI scoreText;
+
     public float mismatchRevealTime;
+    public float previewTime;
+
+    public bool isPreviewing { get; private set; } = false;
 
     int totalCards;
     int totalPairs;
@@ -31,7 +37,7 @@ public class GameManager : MonoBehaviour
 
     // Lock to prevent flipping other cards during a pair flip/compare
     private bool _isComparing = false;
-    public bool IsComparing => _isComparing; // read-only for Card access
+    public bool IsComparing => _isComparing;
 
     private void Start()
     {
@@ -76,11 +82,28 @@ public class GameManager : MonoBehaviour
         }
 
         boardManager.UpdateGrid();
+        StartCoroutine(PreviewCards());
     }
 
-    /// <summary>
-    /// Called by a card when it is clicked and wants to flip
-    /// </summary>
+    // For showing the cards at the beginning
+    IEnumerator PreviewCards()
+    {
+        isPreviewing = true;
+
+        // Instantly show all cards face up
+        foreach (Card c in allCards)
+        c.SetFace(true, instant: true);
+
+        yield return new WaitForSeconds(previewTime);
+
+        // Smoothly flip them all back
+        foreach (Card c in allCards)
+        c.SetFace(false, instant: false);
+
+        isPreviewing = false;
+    }
+
+    // Called by a card when it is clicked and wants to flip
     public void RequestFlip(Card card)
     {
         if (_isComparing || card.isMatched || card.isFaceUp || lockedForCompare.Contains(card)) return;
