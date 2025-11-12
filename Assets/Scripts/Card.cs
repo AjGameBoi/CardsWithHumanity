@@ -1,96 +1,86 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class Card : MonoBehaviour, IPointerClickHandler
 {
-    public int cardID; // To Identify Pairs
+    public int cardID;
     public Image frontImage;
     public Image backImage;
-    public float cardFlipDuration;
+    public float cardFlipDuration = 0.4f;
 
     public bool isMatched { get; private set; }
     public bool isFaceUp { get; private set; }
 
-    // Lock so that the card will not flip during animation
-    bool animating = false;
+    [HideInInspector] public GameManager gameManager;
 
-    public event Action<Card> OnFlippedFaceUp; // when flip ends and card is face up
-    public event Action<Card> OnFlippedFaceDown; // when front is hidden again
-
-    void Awake()
-    {
-        // Ensures the intial state
-        SetFace(false, instant: true);
-    }
+    private bool animating = false;
 
     public void Initialize(int id, Sprite faceSprite, Sprite backSprite)
     {
         cardID = id;
-
-        if(frontImage != null)
-        {
-            frontImage.sprite = faceSprite;
-        }
-        if(backImage != null)
-        {
-            backImage.sprite = backSprite;
-        }
+        if (frontImage != null) frontImage.sprite = faceSprite;
+        if (backImage != null) backImage.sprite = backSprite;
+        SetFace(false, true);
     }
+
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (isMatched || animating) return;
-        FlipToFace();
+        if (animating || isMatched) return;
+
+        if (gameManager != null)
+            gameManager.RequestFlip(this);
+        else
+            StartCoroutine(FlipToFaceCoroutine()); // fallback
     }
 
     public void ForceSetMatched()
     {
         isMatched = true;
-        // optionally disable interactivity
-    }
-
-    public void FlipToFace()
-    {
-        if (isFaceUp || animating || isMatched) return;
-        StartCoroutine(Flip(true));
-    }
-
-    public void FlipToBack()
-    {
-        if (!isFaceUp || animating || isMatched) return;
-        StartCoroutine(Flip(false));
     }
 
     public void SetFace(bool faceUp, bool instant = false)
     {
         isFaceUp = faceUp;
+        float y = faceUp ? 180f : 0f;
+
         if (instant)
         {
-            float rotY = faceUp ? 180f : 0f;
-            transform.localEulerAngles = new Vector3(0, rotY, 0);
+            transform.localEulerAngles = new Vector3(0, y, 0);
             frontImage.gameObject.SetActive(faceUp);
             backImage.gameObject.SetActive(!faceUp);
         }
         else
         {
-            if (faceUp) FlipToFace(); else FlipToBack();
+            if (faceUp) StartCoroutine(FlipToFaceCoroutine());
+            else StartCoroutine(FlipToBackCoroutine());
         }
     }
 
-    IEnumerator Flip(bool toFace)
+    public IEnumerator FlipToFaceCoroutine()
+    {
+        if (animating || isFaceUp) yield break;
+        yield return FlipCoroutine(true);
+    }
+
+    public IEnumerator FlipToBackCoroutine()
+    {
+        if (animating || !isFaceUp) yield break;
+        yield return FlipCoroutine(false);
+    }
+
+    IEnumerator FlipCoroutine(bool toFace)
     {
         animating = true;
         float half = cardFlipDuration * 0.5f;
         float t = 0f;
         float start = transform.localEulerAngles.y;
-        // Normalize start to 0..360
         start = Mathf.Repeat(start, 360f);
         float end = toFace ? 180f : 0f;
 
-        // rotate first half
+        // First half rotation
         while (t < half)
         {
             t += Time.deltaTime;
@@ -100,7 +90,7 @@ public class Card : MonoBehaviour, IPointerClickHandler
             yield return null;
         }
 
-        // toggle visuals at flip midpoint
+        // Toggle visuals
         frontImage.gameObject.SetActive(toFace);
         backImage.gameObject.SetActive(!toFace);
 
@@ -116,19 +106,5 @@ public class Card : MonoBehaviour, IPointerClickHandler
 
         isFaceUp = toFace;
         animating = false;
-
-        if (isFaceUp) OnFlippedFaceUp?.Invoke(this);
-        else OnFlippedFaceDown?.Invoke(this);
-    }
-
-    void Start()
-    {
-        
-    }
-
-    
-    void Update()
-    {
-        
     }
 }
