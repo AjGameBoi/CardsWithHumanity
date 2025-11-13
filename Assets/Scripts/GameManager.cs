@@ -170,12 +170,18 @@ public class GameManager : MonoBehaviour
 
     void UpdateScoreUI()
     {
-        if (scoreText != null) scoreText.text = $"Score: {score}";
+        if (scoreText != null) 
+        {
+            scoreText.text = $"Score: {score}";
+        }
     }
 
     void OnGameOver()
     {
         Debug.Log("Game Over! Final Score: " + score);
+        // Store the final score in SceneLoader
+        SceneLoader.SetFinalScore(score);
+        SceneLoader.Instance.LoadGameOver();
     }
 }
 
