@@ -74,7 +74,7 @@ public class GameManager : MonoBehaviour
         {
             GameObject go = Instantiate(cardPrefab, cardParent);
             Card c = go.GetComponent<Card>();
-            c.gameManager = this; // let card access the manager
+            c.gameManager = this; // Letting the card access the manager
             int pid = pairIds[i];
             Sprite faceSprite = faceSprites[pid % faceSprites.Length];
             c.Initialize(pid, faceSprite, backSprite);
@@ -114,6 +114,7 @@ public class GameManager : MonoBehaviour
 
     IEnumerator HandleCardFlip(Card card)
     {
+        SceneLoader.Instance.PlayFlip();
         // Flip the card
         yield return card.FlipToFaceCoroutine();
 
@@ -154,9 +155,12 @@ public class GameManager : MonoBehaviour
             b.ForceSetMatched();
             score += pointsPerMatch;
             UpdateScoreUI();
+
+            SceneLoader.Instance.PlayMatch();
         }
         else
         {
+            SceneLoader.Instance.PlayMismatch();
             // Wait a bit so player can see the mismatch
             yield return new WaitForSeconds(mismatchRevealTime);
 
@@ -179,6 +183,7 @@ public class GameManager : MonoBehaviour
     void OnGameOver()
     {
         Debug.Log("Game Over! Final Score: " + score);
+        SceneLoader.Instance.PlayGameOver();
         // Store the final score in SceneLoader
         SceneLoader.SetFinalScore(score);
         SceneLoader.Instance.LoadGameOver();

@@ -25,4 +25,9 @@ public class UIButtonActions : MonoBehaviour
     {
         SceneLoader.Instance.QuitGame();
     }
+    public void ToggleSettings()
+    {
+        if (SceneLoader.Instance != null)
+            SceneLoader.Instance.ToggleSettingsPanel();
+    }
 }
